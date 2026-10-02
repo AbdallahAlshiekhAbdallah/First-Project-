@@ -1,0 +1,257 @@
+:root {
+  --page-ink: #17312e;
+  --page-green: #18735f;
+  --page-muted: #687a76;
+  --page-border: #e4eae7;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--page-ink);
+  background: #f5f8f6;
+}
+
+.app-navbar {
+  background: #153d39;
+}
+
+.app-navbar .navbar-brand {
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.brand-mark {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.6rem;
+  color: #153d39;
+  background: #d7f0e2;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.page-intro h1 {
+  color: var(--page-ink);
+  letter-spacing: -0.035em;
+}
+
+.eyebrow {
+  color: var(--page-green);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+}
+
+#alertContainer:empty {
+  display: none;
+}
+
+/* The summary cards are direct children of this Grid container. */
+.summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 576px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.stat-card,
+.content-card {
+  border: 1px solid var(--page-border);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 8px 26px rgba(21, 61, 57, 0.04);
+}
+
+.stat-card {
+  border-top: 4px solid #218068;
+}
+
+.stat-count {
+  border-top-color: #79a5a7;
+}
+
+.stat-highest {
+  border-top-color: #d0a666;
+}
+
+.stat-label {
+  color: var(--page-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  color: var(--page-ink);
+  font-size: clamp(1.65rem, 3vw, 2.1rem);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.stat-note {
+  min-height: 1.35rem;
+  margin-top: 0.6rem;
+  color: var(--page-muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+#alertContainer,
+#addFormError,
+#editFormError {
+  overflow-wrap: anywhere;
+}
+
+.section-heading h2,
+.content-card h2 {
+  color: var(--page-ink);
+}
+
+.form-label {
+  color: #344e49;
+  font-weight: 600;
+}
+
+.form-control,
+.form-select {
+  border-color: #d7e1dc;
+  border-radius: 0.6rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #45937b;
+  box-shadow: 0 0 0 0.2rem rgba(24, 115, 95, 0.13);
+}
+
+.btn-primary {
+  --bs-btn-bg: #18735f;
+  --bs-btn-border-color: #18735f;
+  --bs-btn-hover-bg: #125b4b;
+  --bs-btn-hover-border-color: #125b4b;
+  --bs-btn-active-bg: #104e41;
+  --bs-btn-active-border-color: #104e41;
+  --bs-btn-focus-shadow-rgb: 24, 115, 95;
+  border-radius: 0.6rem;
+  font-weight: 600;
+}
+
+.table {
+  min-width: 620px;
+  font-size: 0.9rem;
+}
+
+.table th {
+  padding: 0.9rem 1rem;
+  color: #657873;
+  background: #f9fbfa;
+  border-bottom-color: var(--page-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.9rem 1rem;
+  border-bottom-color: #eef2ef;
+}
+
+.table td:first-child {
+  font-weight: 600;
+  min-width: 9rem;
+  max-width: 16rem;
+  overflow-wrap: anywhere;
+}
+
+.table td:nth-child(2),
+.table td:nth-child(4) {
+  white-space: nowrap;
+}
+
+.table-responsive:focus-visible {
+  outline: 3px solid var(--page-green);
+  outline-offset: 2px;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table td:last-child {
+  white-space: nowrap;
+}
+
+.empty-state {
+  border-top: 1px solid var(--page-border);
+}
+
+.empty-state-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--page-green);
+  background: #e7f4ed;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.modal-content {
+  border: 1px solid var(--page-border);
+  border-radius: 1rem;
+}
+
+/* The form sits between the modal header and footer; let its body scroll. */
+#editExpenseForm {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 767.98px) {
+  /* Give touch controls enough room on phones and small tablets. */
+  .form-control,
+  .form-select,
+  .btn {
+    min-height: 44px;
+  }
+
+  .table .btn {
+    min-width: 44px;
+    padding-inline: 0.75rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .page-intro h1 {
+    font-size: 2rem;
+  }
+
+  .stat-card .card-body,
+  .content-card .card-body {
+    padding: 1.25rem !important;
+  }
+
+  .modal-header .btn-close {
+    box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+  }
+}
