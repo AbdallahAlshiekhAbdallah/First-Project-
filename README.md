@@ -4,6 +4,8 @@
 
 A web app for keeping track of personal expenses. You can add, edit, delete, and filter expenses. The app saves your data in a PostgreSQL database.
 
+GitHub repository: [First Project](https://github.com/AbdallahAlshiekhAbdallah/First-Project-.git).
+
 ## Features
 
 - Add an expense with a title, amount, category, and date.
