@@ -11,6 +11,7 @@ GitHub repository: [First Project](https://github.com/AbdallahAlshiekhAbdallah/F
 - Add an expense with a title, amount, category, and date.
 - Edit or delete saved expenses.
 - Filter expenses by category.
+- Search expenses by title while typing, together with the category filter.
 - See the total amount, number of expenses, and highest expense.
 - Keep saved expenses after refreshing the page or restarting the server.
 - Show messages when an entry is wrong or data cannot load.
@@ -103,6 +104,7 @@ To stop the server, press `Ctrl+C` in the terminal. To start it again, run `npm 
 - **Edit:** click **Edit**, change the details, and click **Save changes**.
 - **Delete:** click **Delete** and confirm.
 - **Filter:** choose a category, or choose **All categories** to see every expense.
+- **Search:** type part of a title in **Search by title**. Matching ignores uppercase and lowercase; clear the search to show all titles in the selected category. The summary always includes all expenses.
 
 ## Input rules
 

@@ -8,7 +8,7 @@
   <title>Expense Tracker</title>
   <link rel="icon" type="image/png" sizes="64x64" href="Images/favicon.png?v=3">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=9">
 </head>
 
 <body>
@@ -25,7 +25,7 @@
     <header class="page-intro mb-4 mb-lg-5">
       <p class="eyebrow mb-2">YOUR EXPENSES AT A GLANCE</p>
       <h1 class="display-6 fw-semibold mb-2">Know where your money goes.</h1>
-      <p class="text-secondary mb-0">Add expenses, find them by category, and keep your totals in view.</p>
+      <p class="text-secondary mb-0">Add expenses, search by title, filter by category, and keep your totals in view.</p>
     </header>
 
     <div id="alertContainer" class="mb-4" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -103,11 +103,16 @@
         <div class="card content-card">
           <div class="card-body p-4 pb-2">
             <div class="row g-3 align-items-end justify-content-between">
-              <div class="col-12 col-md-auto">
+              <div class="col-12">
                 <h2 id="expensesHeading" class="h5 fw-semibold mb-1">Your expenses</h2>
                 <p class="text-secondary small mb-0">Review and manage your entries.</p>
               </div>
-              <div class="col-12 col-md-5 col-xl-4">
+              <div class="col-12 col-md-7">
+                <label for="titleSearch" class="form-label small mb-1">Search by title</label>
+                <input id="titleSearch" type="search" class="form-control" placeholder="Search expenses..."
+                  aria-controls="expensesTable" autocomplete="off">
+              </div>
+              <div class="col-12 col-md-5">
                 <label for="categoryFilter" class="form-label small mb-1">Filter by category</label>
                 <select id="categoryFilter" class="form-select" aria-controls="expensesTable">
                   <option value="All">All categories</option>
@@ -126,10 +131,10 @@
             <span class="d-block text-secondary small mt-2">Loading expenses...</span>
           </div>
 
-          <div id="emptyState" class="empty-state text-center px-4 py-5" hidden>
+          <div id="emptyState" class="empty-state text-center px-4 py-5" role="status" hidden>
             <div class="empty-state-mark mx-auto mb-3" aria-hidden="true">+</div>
             <p class="fw-semibold mb-1">No expenses to show</p>
-            <p class="text-secondary small mb-0">Add an expense or choose a different category.</p>
+            <p class="text-secondary small mb-0">Add an expense, clear your search, or choose a different category.</p>
           </div>
 
           <div class="table-responsive" tabindex="0" role="region" aria-label="Scrollable expense table">
@@ -197,7 +202,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 
 </html>

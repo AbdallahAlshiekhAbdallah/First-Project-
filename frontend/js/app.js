@@ -18,6 +18,7 @@ const elements = {
   emptyState: document.getElementById('emptyState'),
   tableBody: document.getElementById('expensesTableBody'),
   filter: document.getElementById('categoryFilter'),
+  search: document.getElementById('titleSearch'),
   totalAmount: document.getElementById('totalAmount'),
   expenseCount: document.getElementById('expenseCount'),
   highestExpense: document.getElementById('highestExpense'),
@@ -197,9 +198,12 @@ function renderTable(list) {
 
 function applyFilter() {
   const selected = elements.filter.value;
-  const visible = selected === 'All' || selected === ''
-    ? expenses
-    : expenses.filter((expense) => expense.category === selected);
+  const searchTitle = elements.search.value.trim().toLowerCase();
+  const visible = expenses.filter((expense) => {
+    const matchesCategory = selected === 'All' || selected === '' || expense.category === selected;
+    const matchesTitle = expense.title.toLowerCase().includes(searchTitle);
+    return matchesCategory && matchesTitle;
+  });
   renderTable(visible);
 }
 
@@ -331,6 +335,7 @@ async function handleDelete(expense, button) {
 elements.addForm.addEventListener('submit', handleAdd);
 elements.editForm.addEventListener('submit', handleEdit);
 elements.filter.addEventListener('change', applyFilter);
+elements.search.addEventListener('input', applyFilter);
 elements.editModal.addEventListener('show.bs.modal', () => { editModalShown = false; });
 elements.editModal.addEventListener('shown.bs.modal', () => { editModalShown = true; });
 elements.editModal.addEventListener('hidden.bs.modal', () => {
