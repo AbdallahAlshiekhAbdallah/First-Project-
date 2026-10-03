@@ -6,6 +6,10 @@ A web app for keeping track of personal expenses. You can add, edit, delete, and
 
 GitHub repository: [First Project](https://github.com/AbdallahAlshiekhAbdallah/First-Project-.git).
 
+## Project explanation
+
+[expense-tracker-explanation](https://drive.google.com/file/d/1XifG3JOySya8l1mNBkYLkm9IZdH81GlH/view?usp=drive_link)
+
 ## Features
 
 - Add an expense with a title, amount, category, and date.
