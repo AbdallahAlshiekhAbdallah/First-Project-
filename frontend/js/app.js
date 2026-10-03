@@ -225,35 +225,68 @@ function isRealDate(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-function expenseFromForm(form) {
-  const title = form.elements.title.value.trim();
-  const amountText = form.elements.amount.value.trim();
-  const category = form.elements.category.value;
-  const date = form.elements.date.value;
-
-  if (!title) throw new Error('Title is required.');
-  if (title.length > 100) throw new Error('Title must be 100 characters or fewer.');
-  const amount = Number(amountText);
-  if (!/^\d+(\.\d{1,2})?$/.test(amountText) || !Number.isFinite(amount) || amount <= 0) {
-    throw new Error('Amount must be greater than 0 and have at most 2 decimal places.');
+// Return a message for this field, or an empty string when it is valid.
+function getFieldError(field) {
+  const value = field.value.trim();
+  if (field.name === 'title') {
+    if (!value) return 'Title is required.';
+    if (value.length > 100) return 'Title must be 100 characters or fewer.';
+  } else if (field.name === 'amount') {
+    const amount = Number(value);
+    if (!value || !Number.isFinite(amount) || amount <= 0) return 'Enter an amount greater than 0.';
+    if (!/^\d+(\.\d{1,2})?$/.test(value)) return 'Use at most 2 decimal places.';
+    if (amount > 99999999.99) return 'Amount must be no more than 99,999,999.99.';
+  } else if (field.name === 'category') {
+    if (!CATEGORIES.includes(value)) return 'Choose a category.';
+  } else if (field.name === 'date') {
+    if (!isRealDate(value)) return 'Choose a valid date using the calendar.';
   }
-  if (amount > 99999999.99) throw new Error('Amount must be no more than 99,999,999.99.');
-  if (!CATEGORIES.includes(category)) throw new Error('Choose a valid category.');
-  if (!isRealDate(date)) throw new Error('Enter a real date in YYYY-MM-DD format.');
-  return { title, amount, category, date };
+  return '';
+}
+
+function setFieldError(field, message) {
+  document.getElementById(`${field.id}Error`).textContent = message;
+  field.classList.toggle('is-invalid', Boolean(message));
+  if (message) {
+    field.setAttribute('aria-invalid', 'true');
+  } else {
+    field.removeAttribute('aria-invalid');
+  }
+}
+
+function clearFieldErrors(form) {
+  for (const name of ['title', 'amount', 'category', 'date']) {
+    setFieldError(form.elements[name], '');
+  }
+}
+
+function expenseFromForm(form) {
+  let firstInvalidField = null;
+  // Check every field so all errors appear together after submitting.
+  for (const name of ['title', 'amount', 'category', 'date']) {
+    const field = form.elements[name];
+    const message = getFieldError(field);
+    setFieldError(field, message);
+    if (message && !firstInvalidField) firstInvalidField = field;
+  }
+  if (firstInvalidField) {
+    firstInvalidField.focus();
+    return null;
+  }
+  return {
+    title: form.elements.title.value.trim(),
+    amount: Number(form.elements.amount.value),
+    category: form.elements.category.value,
+    date: form.elements.date.value,
+  };
 }
 
 async function handleAdd(event) {
   event.preventDefault();
   if (expenseChangeInProgress) return;
   clearFormError(elements.addError);
-  let data;
-  try {
-    data = expenseFromForm(elements.addForm);
-  } catch (error) {
-    showFormError(elements.addError, error.message);
-    return;
-  }
+  const data = expenseFromForm(elements.addForm);
+  if (!data) return;
 
   expenseChangeInProgress = true;
   elements.addButton.disabled = true;
@@ -273,6 +306,7 @@ function openEdit(expense) {
   if (expenseChangeInProgress) return;
   editingExpenseId = expense.id;
   clearFormError(elements.editError);
+  clearFieldErrors(elements.editForm);
   elements.editForm.elements.title.value = expense.title;
   elements.editForm.elements.amount.value = expense.amount;
   elements.editForm.elements.category.value = expense.category;
@@ -294,13 +328,8 @@ async function handleEdit(event) {
   event.preventDefault();
   if (expenseChangeInProgress || editingExpenseId === null) return;
   clearFormError(elements.editError);
-  let data;
-  try {
-    data = expenseFromForm(elements.editForm);
-  } catch (error) {
-    showFormError(elements.editError, error.message);
-    return;
-  }
+  const data = expenseFromForm(elements.editForm);
+  if (!data) return;
 
   expenseChangeInProgress = true;
   elements.editButton.disabled = true;
@@ -330,6 +359,35 @@ async function handleDelete(expense, button) {
     expenseChangeInProgress = false;
     button.disabled = false;
   }
+}
+
+// Keep the native calendar available, but prevent typing or pasting a date.
+function useCalendarOnly(input) {
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') return;
+    event.preventDefault();
+    // Keyboard users can open the calendar with Enter or Space.
+    if ((event.key === 'Enter' || event.key === ' ') && typeof input.showPicker === 'function') {
+      input.showPicker();
+    }
+  });
+  for (const eventName of ['beforeinput', 'paste', 'drop']) {
+    input.addEventListener(eventName, (event) => event.preventDefault());
+  }
+}
+
+useCalendarOnly(elements.addForm.elements.date);
+useCalendarOnly(elements.editForm.elements.date);
+
+// Recheck a field while the user corrects an error already shown.
+for (const form of [elements.addForm, elements.editForm]) {
+  for (const eventName of ['input', 'change']) {
+    form.addEventListener(eventName, (event) => {
+      const field = event.target;
+      if (field.classList.contains('is-invalid')) setFieldError(field, getFieldError(field));
+    });
+  }
+  form.addEventListener('reset', () => clearFieldErrors(form));
 }
 
 elements.addForm.addEventListener('submit', handleAdd);
