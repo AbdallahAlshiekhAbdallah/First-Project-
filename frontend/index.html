@@ -8,7 +8,7 @@
   <title>Expense Tracker</title>
   <link rel="icon" type="image/png" sizes="64x64" href="Images/favicon.png?v=3">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="stylesheet" href="css/style.css?v=14">
 </head>
 
 <body>
@@ -93,10 +93,19 @@
               </div>
               <div class="mb-4">
                 <label for="date" class="form-label">Date</label>
-                <input id="date" name="date" type="date" class="form-control" inputmode="none"
-                  aria-describedby="dateError dateHelp" required>
-                <div id="dateError" class="invalid-feedback" aria-live="polite"></div>
-                <div id="dateHelp" class="form-text">Choose a date using the calendar icon.</div>
+                <div class="date-field">
+                  <input id="date" name="date" type="date" class="form-control date-field-input" inputmode="none"
+                    aria-describedby="dateError dateHelp" required>
+                  <span class="form-control date-field-display" aria-hidden="true">
+                    <span id="dateDisplay" class="date-field-value is-placeholder">Please input date (MM/DD/YYYY)</span>
+                    <svg class="date-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                      <path d="M16 3v4M8 3v4M3 11h18"></path>
+                    </svg>
+                  </span>
+                  <div id="dateError" class="invalid-feedback" aria-live="polite"></div>
+                </div>
+                <div id="dateHelp" class="form-text">Click or tap the date field to open the calendar.</div>
               </div>
               <div id="addFormError" class="alert alert-danger small" role="alert" hidden></div>
               <button id="submitExpenseBtn" type="submit" class="btn btn-primary w-100">Add expense</button>
@@ -198,10 +207,19 @@
             </div>
             <div class="mb-3">
               <label for="editDate" class="form-label">Date</label>
-              <input id="editDate" name="date" type="date" class="form-control" inputmode="none"
-                aria-describedby="editDateError editDateHelp" required>
-              <div id="editDateError" class="invalid-feedback" aria-live="polite"></div>
-              <div id="editDateHelp" class="form-text">Choose a date using the calendar icon.</div>
+              <div class="date-field">
+                <input id="editDate" name="date" type="date" class="form-control date-field-input" inputmode="none"
+                  aria-describedby="editDateError editDateHelp" required>
+                <span class="form-control date-field-display" aria-hidden="true">
+                  <span id="editDateDisplay" class="date-field-value is-placeholder">Please input date (MM/DD/YYYY)</span>
+                  <svg class="date-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                    <path d="M16 3v4M8 3v4M3 11h18"></path>
+                  </svg>
+                </span>
+                <div id="editDateError" class="invalid-feedback" aria-live="polite"></div>
+              </div>
+              <div id="editDateHelp" class="form-text">Click or tap the date field to open the calendar.</div>
             </div>
             <div id="editFormError" class="alert alert-danger small mb-0" role="alert" hidden></div>
           </div>
@@ -215,7 +233,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="js/app.js?v=11"></script>
+  <script src="js/app.js?v=15"></script>
 </body>
 
 </html>

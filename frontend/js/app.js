@@ -311,6 +311,7 @@ function openEdit(expense) {
   elements.editForm.elements.amount.value = expense.amount;
   elements.editForm.elements.category.value = expense.category;
   elements.editForm.elements.date.value = expense.date;
+  updateDateDisplay(elements.editForm.elements.date);
   bootstrap.Modal.getOrCreateInstance(elements.editModal).show();
 }
 
@@ -361,13 +362,35 @@ async function handleDelete(expense, button) {
   }
 }
 
+function updateDateDisplay(input) {
+  const display = document.getElementById(`${input.id}Display`);
+  if (input.value) {
+    const [year, month, day] = input.value.split('-');
+    display.textContent = `${month}/${day}/${year}`;
+  } else {
+    display.textContent = 'Please input date (MM/DD/YYYY)';
+  }
+  display.classList.toggle('is-placeholder', !input.value);
+}
+
 // Keep the native calendar available, but prevent typing or pasting a date.
 function useCalendarOnly(input) {
+  updateDateDisplay(input);
+  for (const eventName of ['input', 'change']) {
+    input.addEventListener(eventName, () => updateDateDisplay(input));
+  }
+  // The reset event runs before the browser restores the empty date value.
+  input.form.addEventListener('reset', () => queueMicrotask(() => updateDateDisplay(input)));
+
+  // Open the calendar when any part of the date field is clicked or tapped.
+  input.addEventListener('click', () => {
+    if (typeof input.showPicker === 'function') input.showPicker();
+  });
+
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Tab') return;
     event.preventDefault();
-    // Keyboard users can open the calendar with Enter or Space.
-    if ((event.key === 'Enter' || event.key === ' ') && typeof input.showPicker === 'function') {
+    if (event.key === 'Enter' && typeof input.showPicker === 'function') {
       input.showPicker();
     }
   });
