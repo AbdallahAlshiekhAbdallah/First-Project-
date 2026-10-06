@@ -6,7 +6,7 @@ const { Pool } = require('pg');
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-const categories = ['Food', 'Transport', 'Bills', 'Entertainment', 'Other'];
+const categories = ['Food', 'Transport', 'Bills', 'Entertainment', 'Other', 'Health'];
 
 // Every response uses a numeric amount and a date formatted as YYYY-MM-DD.
 // PostgreSQL otherwise returns NUMERIC as text and DATE as a Date object.

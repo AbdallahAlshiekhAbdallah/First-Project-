@@ -1,11 +1,12 @@
 const API_URL = 'http://localhost:3000/api/expenses';
-const CATEGORIES = ['Food', 'Transport', 'Bills', 'Entertainment', 'Other'];
+const CATEGORIES = ['Food', 'Transport', 'Bills', 'Entertainment', 'Other', 'Health'];
 const CATEGORY_BADGE_COLORS = {
   Food: 'success',
   Transport: 'info',
   Bills: 'warning',
   Entertainment: 'primary',
   Other: 'secondary',
+  Health: 'danger',
 };
 const amountFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
@@ -293,7 +294,7 @@ async function handleAdd(event) {
   try {
     const addedExpense = await addExpense(data);
     elements.addForm.reset();
-    if (await refreshExpenses()) showAlert(addedExpense.title, 'success');
+    if (await refreshExpenses()) showAlert(`${addedExpense.title} add successfully`, 'success');
   } catch (error) {
     showFormError(elements.addError, error.message);
   } finally {
