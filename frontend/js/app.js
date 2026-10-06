@@ -291,9 +291,9 @@ async function handleAdd(event) {
   expenseChangeInProgress = true;
   elements.addButton.disabled = true;
   try {
-    await addExpense(data);
+    const addedExpense = await addExpense(data);
     elements.addForm.reset();
-    if (await refreshExpenses()) showAlert('Expense added.', 'success');
+    if (await refreshExpenses()) showAlert(addedExpense.title, 'success');
   } catch (error) {
     showFormError(elements.addError, error.message);
   } finally {
