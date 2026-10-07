@@ -63,6 +63,27 @@ Install Node.js with npm, PostgreSQL with pgAdmin, and the Live Server extension
 
 The script creates the expenses table and adds eight sample expenses. Running it again deletes the current expenses and adds the sample data again.
 
+### Updating an existing database
+
+If your database was created before the Health category was added, run this SQL in pgAdmin's Query Tool for `expense_tracker`. It updates the category constraint and keeps your saved expenses.
+
+This uses the default constraint name created by the project's schema.
+
+```sql
+BEGIN;
+
+ALTER TABLE expenses
+DROP CONSTRAINT expenses_category_check;
+
+ALTER TABLE expenses
+ADD CONSTRAINT expenses_category_check
+CHECK (category IN ('Food', 'Transport', 'Bills', 'Entertainment', 'Other', 'Health'));
+
+COMMIT;
+```
+
+New databases created using the current `backend/schema.sql` already support Health.
+
 ### 3. Set up the server
 
 Open a terminal in the project folder and run:
@@ -116,7 +137,7 @@ To stop the server, press `Ctrl+C` in the terminal. To start it again, run `npm 
 | --- | --- |
 | Title | Required, with no more than 100 characters. |
 | Amount | Greater than zero, with up to two decimal places. |
-| Category | Food, Transport, Bills, Entertainment, or Other. |
+| Category | Food, Transport, Bills, Entertainment, Other, or Health. |
 | Date | A valid date in `YYYY-MM-DD` format. |
 
 ## API
