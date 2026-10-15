@@ -25,6 +25,9 @@ GitHub repository: [First Project](https://github.com/AbdallahAlshiekhAbdallah/F
 - See a doughnut chart and totals showing spending in each category.
 - Filter expenses by month and year, together with the category filter.
 - Search expenses by title while typing, together with the category and month filters.
+- Sort expenses by clicking the Title, Amount, Category, or Date table heading.
+- Export the displayed expenses to a CSV file, keeping the current filters and sort order.
+- Switch between light and dark mode and remember your choice in the browser.
 
 ## Tools used
 
@@ -41,7 +44,7 @@ expense-tracker-starter/
 │   ├── Images/
 │   │   └── favicon.png
 │   ├── css/style.css
-│   └── js/app.js
+│   └── js/ (app.js and theme.js)
 ├── backend/
 │   ├── server.js
 │   ├── schema.sql
@@ -134,11 +137,21 @@ To stop the server, press `Ctrl+C` in the terminal. To start it again, run `npm 
 - **Edit:** click **Edit**, change the details, and click **Save changes**.
 - **Delete:** click **Delete** and confirm.
 - **Category filter:** choose a category, or choose **All categories** to include every category.
+- **Dark mode:** click **Dark mode** in the top bar to switch themes; click it again to return to light mode. Your choice is saved in this browser for your next visit. Until you choose a theme, the app follows your device's light/dark setting. If browser storage is blocked, switching still works for the current page. Forms, tables, dialogs, and chart tooltips match the selected theme.
 - **Month filter:** choose a month and year in **Filter by month**, such as **October 2026**. Available months come from saved expenses, newest first. Choose **All months** to remove the month filter. It works together with category filtering and title search. Your selected month stays selected after adding, editing, or deleting an expense.
 - **Search:** type part of a title in **Search by title**. Matching ignores uppercase and lowercase; clear the search to show all titles that match the selected category and month. The summary always includes all expenses.
+- **Sort:** click **Title**, **Amount**, **Category**, or **Date** in the table header. The first click sorts A–Z, lowest amount first, or oldest date first. Click the same heading again to reverse the order; the arrow shows the current direction. Sorting a different column starts in ascending order. Sorting works with all filters and stays active after adding, editing, or deleting expenses. You can also focus a heading with Tab and press Enter or Space. The summary and chart always include all expenses.
 - **Category chart:** the **Expenses by category** chart shows the total amount spent in each category, including Health. Hover over a slice (or tap it on a phone) to see its amount. The totals beside it are also readable without using the chart. Adding, editing, or deleting an expense updates the chart automatically. Like the summary cards, the chart always includes all expenses, regardless of table filters. With no expenses, it shows a prompt to add one.
 
 Chart.js loads from a CDN, like Bootstrap, so an internet connection is needed to load the chart library. If it cannot load, the category totals are still shown and the rest of the app remains usable.
+
+### Exporting expenses
+
+Click **Export CSV** above the table to download `expenses-YYYY-MM-DD.csv`, named with today's date. The file contains **Title, Amount, Category, and Date** for the rows currently shown, in their current sort order. To export everything, clear the title search and select **All categories** and **All months**. The button is disabled while expenses are loading or when no rows match.
+
+Open the file in a spreadsheet app, such as Excel, or import it as a comma-separated UTF-8 file. Amounts use two decimal places and dates use `YYYY-MM-DD`. Arabic text, commas, quotes, and line breaks are preserved. Formula-like text receives a leading tab to reduce formula execution during spreadsheet import; that tab is part of the exported value. Exporting does not change saved expenses.
+
+If Excel shows `#######` in the **Date** column, double-click the right edge of the **D** column heading to fit the dates. The dates are still present; the column is just too narrow. CSV files cannot store column widths or display formatting.
 
 ## Input rules
 

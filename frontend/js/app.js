@@ -18,12 +18,16 @@ const monthFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
   timeZone: 'UTC',
 });
+const textCollator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
 
 const elements = {
   alerts: document.getElementById('alertContainer'),
   spinner: document.getElementById('loadingSpinner'),
   emptyState: document.getElementById('emptyState'),
   tableBody: document.getElementById('expensesTableBody'),
+  sortButtons: document.querySelectorAll('#expensesTable .table-sort'),
+  sortStatus: document.getElementById('sortStatus'),
+  exportButton: document.getElementById('exportCsvBtn'),
   filter: document.getElementById('categoryFilter'),
   search: document.getElementById('titleSearch'),
   monthFilter: document.getElementById('monthFilter'),
@@ -53,6 +57,8 @@ let editModalShown = false;
 let pendingRequestCount = 0;
 let expenseChangeInProgress = false;
 let categoryChart = null;
+let sortColumn = null;
+let sortDirection = 'ascending';
 
 function showAlert(message, kind = 'danger') {
   const alert = document.createElement('div');
@@ -87,6 +93,7 @@ function showFormError(element, message) {
 
 function updateSpinner() {
   elements.spinner.hidden = pendingRequestCount === 0;
+  updateExportButton();
 }
 
 // All four HTTP methods share network, status, and response handling.
@@ -164,6 +171,24 @@ function renderSummary(list) {
   }
 }
 
+function chartThemeColors() {
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    backgroundColor: styles.getPropertyValue('--page-surface').trim(),
+    titleColor: styles.getPropertyValue('--page-ink').trim(),
+    bodyColor: styles.getPropertyValue('--page-muted').trim(),
+    borderColor: styles.getPropertyValue('--page-field-border').trim(),
+  };
+}
+
+function updateChartTheme() {
+  if (!categoryChart) return;
+  const colors = chartThemeColors();
+  Object.assign(categoryChart.options.plugins.tooltip, colors);
+  categoryChart.data.datasets[0].borderColor = colors.backgroundColor;
+  categoryChart.update('none');
+}
+
 function renderCategoryChart(list) {
   const hasExpenses = list.length > 0;
   elements.chartEmpty.textContent = 'Add an expense to see your spending by category.';
@@ -216,6 +241,7 @@ function renderCategoryChart(list) {
     return;
   }
 
+  const colors = chartThemeColors();
   categoryChart = new Chart(elements.categoryChart, {
     type: 'doughnut',
     data: {
@@ -224,6 +250,7 @@ function renderCategoryChart(list) {
         label: 'Total spent',
         data: totals,
         backgroundColor: CATEGORY_CHART_COLORS,
+        borderColor: colors.backgroundColor,
         borderWidth: 2,
         hoverOffset: 6,
       }],
@@ -237,10 +264,7 @@ function renderCategoryChart(list) {
         legend: { display: false }, // The HTML list also makes totals readable without the canvas.
         tooltip: {
           // Chart.js draws this tooltip on the canvas, so its styles are set here.
-          backgroundColor: '#ffffff',
-          titleColor: '#17312e',
-          bodyColor: '#687a76',
-          borderColor: '#d7e1dc',
+          ...colors,
           borderWidth: 1,
           cornerRadius: 10,
           padding: 12,
@@ -322,7 +346,39 @@ function renderMonthOptions(list) {
   elements.monthFilter.value = selectedMonth;
 }
 
-function applyFilter() {
+function compareExpenses(first, second) {
+  let comparison;
+  if (sortColumn === 'amount') {
+    comparison = Number(first.amount) - Number(second.amount);
+  } else if (sortColumn === 'date') {
+    // YYYY-MM-DD strings already follow chronological order.
+    comparison = first.date < second.date ? -1 : first.date > second.date ? 1 : 0;
+  } else {
+    comparison = textCollator.compare(first[sortColumn], second[sortColumn]);
+  }
+  // Equal values keep a predictable order after refreshing data from the server.
+  if (comparison === 0) return first.id - second.id;
+  return sortDirection === 'ascending' ? comparison : -comparison;
+}
+
+function changeSort(column) {
+  sortDirection = sortColumn === column && sortDirection === 'ascending' ? 'descending' : 'ascending';
+  sortColumn = column;
+
+  for (const button of elements.sortButtons) {
+    const active = button.dataset.sort === sortColumn;
+    const heading = button.closest('th');
+    if (active) heading.setAttribute('aria-sort', sortDirection);
+    else heading.removeAttribute('aria-sort');
+    button.querySelector('.sort-indicator').textContent = active ? (sortDirection === 'ascending' ? '↑' : '↓') : '↕';
+    const nextDirection = active && sortDirection === 'ascending' ? 'descending' : 'ascending';
+    button.setAttribute('aria-label', `Sort by ${button.dataset.sort}, ${nextDirection}`);
+  }
+  elements.sortStatus.textContent = `Sorted by ${sortColumn}, ${sortDirection}.`;
+  applyFilter();
+}
+
+function getVisibleExpenses() {
   const selected = elements.filter.value;
   const searchTitle = elements.search.value.trim().toLowerCase();
   const selectedMonth = elements.monthFilter.value;
@@ -333,7 +389,56 @@ function applyFilter() {
     const matchesMonth = selectedMonth === '' || expense.date.slice(0, 7) === selectedMonth;
     return matchesCategory && matchesTitle && matchesMonth;
   });
+  // filter() creates a new array, so sorting it leaves the full expense list in its original order.
+  if (sortColumn) visible.sort(compareExpenses);
+  return visible;
+}
+
+function updateExportButton() {
+  elements.exportButton.disabled = pendingRequestCount > 0 || getVisibleExpenses().length === 0;
+}
+
+function applyFilter() {
+  const visible = getVisibleExpenses();
   renderTable(visible);
+  updateExportButton();
+}
+
+function csvCell(value) {
+  let text = String(value);
+  // Prefix formula-like text for spreadsheet imports, including leading whitespace.
+  // The tab is part of the exported value; quoting alone does not prevent formulas.
+  if (/^[\s\uFEFF]*[=+\-@＝＋－＠]/u.test(text) || /^[\t\r\n]/.test(text)) text = `\t${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function exportCsv() {
+  if (pendingRequestCount > 0 || expenseChangeInProgress) return;
+  const visible = getVisibleExpenses();
+  if (visible.length === 0) return;
+
+  const rows = [
+    ['Title', 'Amount', 'Category', 'Date'],
+    ...visible.map((expense) => [
+      expense.title, Number(expense.amount).toFixed(2), expense.category, expense.date,
+    ]),
+  ];
+  const csv = rows.map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+  // UTF-8 BOM helps spreadsheet apps recognize Arabic and other Unicode text.
+  const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const today = new Date();
+  const date = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0')].join('-');
+  link.href = url;
+  link.download = `expenses-${date}.csv`;
+  link.hidden = true;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  // Allow the browser to start its download before releasing the object URL.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function refreshExpenses() {
@@ -544,7 +649,12 @@ for (const form of [elements.addForm, elements.editForm]) {
   form.addEventListener('reset', () => clearFieldErrors(form));
 }
 
+document.addEventListener('themechange', updateChartTheme);
 elements.addForm.addEventListener('submit', handleAdd);
+elements.exportButton.addEventListener('click', exportCsv);
+for (const button of elements.sortButtons) {
+  button.addEventListener('click', () => changeSort(button.dataset.sort));
+}
 elements.editForm.addEventListener('submit', handleEdit);
 elements.filter.addEventListener('change', applyFilter);
 elements.search.addEventListener('input', applyFilter);
