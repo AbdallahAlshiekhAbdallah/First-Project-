@@ -15,15 +15,20 @@ GitHub repository: [First Project](https://github.com/AbdallahAlshiekhAbdallah/F
 - Add an expense with a title, amount, category, and date.
 - Edit or delete saved expenses.
 - Filter expenses by category.
-- Search expenses by title while typing, together with the category filter.
 - See the total amount, number of expenses, and highest expense.
 - Keep saved expenses after refreshing the page or restarting the server.
 - Show messages when an entry is wrong or data cannot load.
 - Use the app on desktop and phone screens.
 
+## Bonus Features
+
+- See a doughnut chart and totals showing spending in each category.
+- Filter expenses by month and year, together with the category filter.
+- Search expenses by title while typing, together with the category and month filters.
+
 ## Tools used
 
-- **Frontend:** HTML, CSS, JavaScript, and Bootstrap.
+- **Frontend:** HTML, CSS, JavaScript, Bootstrap, and Chart.js.
 - **Backend:** Node.js and Express.
 - **Database:** PostgreSQL.
 
@@ -107,8 +112,12 @@ To stop the server, press `Ctrl+C` in the terminal. To start it again, run `npm 
 - **Add:** fill in the four fields and click **Add expense**.
 - **Edit:** click **Edit**, change the details, and click **Save changes**.
 - **Delete:** click **Delete** and confirm.
-- **Filter:** choose a category, or choose **All categories** to see every expense.
-- **Search:** type part of a title in **Search by title**. Matching ignores uppercase and lowercase; clear the search to show all titles in the selected category. The summary always includes all expenses.
+- **Category filter:** choose a category, or choose **All categories** to include every category.
+- **Month filter:** choose a month and year in **Filter by month**, such as **October 2026**. Available months come from saved expenses, newest first. Choose **All months** to remove the month filter. It works together with category filtering and title search. Your selected month stays selected after adding, editing, or deleting an expense.
+- **Search:** type part of a title in **Search by title**. Matching ignores uppercase and lowercase; clear the search to show all titles that match the selected category and month. The summary always includes all expenses.
+- **Category chart:** the **Expenses by category** chart shows the total amount spent in each category, including Health. Hover over a slice (or tap it on a phone) to see its amount. The totals beside it are also readable without using the chart. Adding, editing, or deleting an expense updates the chart automatically. Like the summary cards, the chart always includes all expenses, regardless of table filters. With no expenses, it shows a prompt to add one.
+
+Chart.js loads from a CDN, like Bootstrap, so an internet connection is needed to load the chart library. If it cannot load, the category totals are still shown and the rest of the app remains usable.
 
 ## Input rules
 

@@ -109,6 +109,71 @@ body {
   overflow-wrap: anywhere;
 }
 
+.category-chart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Chart.js resizes its canvas to fit this dedicated container. */
+.category-chart-container {
+  position: relative;
+  height: 260px;
+  min-width: 0;
+}
+
+.category-totals {
+  min-width: 0;
+}
+
+.category-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--page-border);
+}
+
+.category-total:last-child {
+  border-bottom: 0;
+}
+
+.category-total dt {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.category-total dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.category-swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+@media (min-width: 768px) {
+  .category-chart-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 3rem;
+  }
+}
+
+.category-chart-layout.chart-unavailable {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 #alertContainer,
 #addFormError,
 #editFormError {

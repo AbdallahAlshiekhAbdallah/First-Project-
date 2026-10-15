@@ -8,9 +8,15 @@ const CATEGORY_BADGE_COLORS = {
   Other: 'secondary',
   Health: 'danger',
 };
+const CATEGORY_CHART_COLORS = ['#198754', '#0dcaf0', '#ffc107', '#0d6efd', '#6c757d', '#dc3545'];
 const amountFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
+});
+const monthFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
 });
 
 const elements = {
@@ -20,10 +26,17 @@ const elements = {
   tableBody: document.getElementById('expensesTableBody'),
   filter: document.getElementById('categoryFilter'),
   search: document.getElementById('titleSearch'),
+  monthFilter: document.getElementById('monthFilter'),
   totalAmount: document.getElementById('totalAmount'),
   expenseCount: document.getElementById('expenseCount'),
   highestExpense: document.getElementById('highestExpense'),
   highestExpenseTitle: document.getElementById('highestExpenseTitle'),
+  categoryChart: document.getElementById('categoryChart'),
+  chartContainer: document.getElementById('categoryChartContainer'),
+  chartContent: document.getElementById('categoryChartContent'),
+  chartEmpty: document.getElementById('categoryChartEmpty'),
+  chartError: document.getElementById('categoryChartError'),
+  categoryTotals: document.getElementById('categoryTotals'),
   addForm: document.getElementById('expenseForm'),
   addButton: document.getElementById('submitExpenseBtn'),
   addError: document.getElementById('addFormError'),
@@ -39,6 +52,7 @@ let editingExpenseId = null;
 let editModalShown = false;
 let pendingRequestCount = 0;
 let expenseChangeInProgress = false;
+let categoryChart = null;
 
 function showAlert(message, kind = 'danger') {
   const alert = document.createElement('div');
@@ -150,6 +164,103 @@ function renderSummary(list) {
   }
 }
 
+function renderCategoryChart(list) {
+  const hasExpenses = list.length > 0;
+  elements.chartEmpty.textContent = 'Add an expense to see your spending by category.';
+  elements.chartEmpty.hidden = hasExpenses;
+  elements.chartContent.hidden = !hasExpenses;
+  elements.chartError.hidden = true;
+
+  if (!hasExpenses) {
+    if (categoryChart) categoryChart.destroy();
+    categoryChart = null;
+    elements.categoryTotals.replaceChildren();
+    return;
+  }
+
+  // Add amounts as whole cents to avoid decimal rounding errors such as 0.1 + 0.2.
+  const centsByCategory = Object.fromEntries(CATEGORIES.map((category) => [category, 0]));
+  for (const expense of list) {
+    centsByCategory[expense.category] += Math.round(Number(expense.amount) * 100);
+  }
+  const totals = CATEGORIES.map((category) => centsByCategory[category] / 100);
+
+  elements.categoryTotals.replaceChildren();
+  CATEGORIES.forEach((category, index) => {
+    const row = document.createElement('div');
+    row.className = 'category-total';
+    const name = document.createElement('dt');
+    const swatch = document.createElement('span');
+    swatch.className = 'category-swatch';
+    swatch.style.backgroundColor = CATEGORY_CHART_COLORS[index];
+    swatch.setAttribute('aria-hidden', 'true');
+    name.append(swatch, category);
+    const amount = document.createElement('dd');
+    amount.textContent = amountFormatter.format(totals[index]);
+    row.append(name, amount);
+    elements.categoryTotals.append(row);
+  });
+  elements.categoryChart.setAttribute('aria-label', CATEGORIES.map((category, index) =>
+    `${category}: ${amountFormatter.format(totals[index])}`).join(', '));
+
+  // Keep the rest of the app usable if the chart library could not download.
+  const chartAvailable = typeof Chart === 'function';
+  elements.chartContainer.hidden = !chartAvailable;
+  elements.chartContent.classList.toggle('chart-unavailable', !chartAvailable);
+  elements.chartError.hidden = chartAvailable;
+  if (!chartAvailable) return;
+
+  if (categoryChart) {
+    categoryChart.data.datasets[0].data = totals;
+    categoryChart.update();
+    return;
+  }
+
+  categoryChart = new Chart(elements.categoryChart, {
+    type: 'doughnut',
+    data: {
+      labels: CATEGORIES,
+      datasets: [{
+        label: 'Total spent',
+        data: totals,
+        backgroundColor: CATEGORY_CHART_COLORS,
+        borderWidth: 2,
+        hoverOffset: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      animation: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 350 },
+      plugins: {
+        legend: { display: false }, // The HTML list also makes totals readable without the canvas.
+        tooltip: {
+          // Chart.js draws this tooltip on the canvas, so its styles are set here.
+          backgroundColor: '#ffffff',
+          titleColor: '#17312e',
+          bodyColor: '#687a76',
+          borderColor: '#d7e1dc',
+          borderWidth: 1,
+          cornerRadius: 10,
+          padding: 12,
+          caretPadding: 8,
+          titleMarginBottom: 8,
+          titleFont: () => ({ family: 'system-ui, sans-serif', size: 13, weight: '600' }),
+          bodyFont: () => ({ family: 'system-ui, sans-serif', size: 13 }),
+          usePointStyle: true,
+          boxWidth: 10,
+          boxHeight: 10,
+          boxPadding: 5,
+          callbacks: {
+            label: (context) => `Total spent: ${amountFormatter.format(context.parsed)}`,
+          },
+        },
+      },
+    },
+  });
+}
+
 function makeCell(value) {
   const cell = document.createElement('td');
   cell.textContent = value;
@@ -197,13 +308,30 @@ function renderTable(list) {
   }
 }
 
+function renderMonthOptions(list) {
+  const selectedMonth = elements.monthFilter.value;
+  const months = new Set(list.map((expense) => expense.date.slice(0, 7)));
+
+  // Keep the chosen month even if its last expense was moved or deleted.
+  if (selectedMonth) months.add(selectedMonth);
+  elements.monthFilter.replaceChildren(new Option('All months', ''));
+  for (const month of [...months].sort().reverse()) {
+    const label = monthFormatter.format(new Date(`${month}-01T00:00:00Z`));
+    elements.monthFilter.append(new Option(label, month));
+  }
+  elements.monthFilter.value = selectedMonth;
+}
+
 function applyFilter() {
   const selected = elements.filter.value;
   const searchTitle = elements.search.value.trim().toLowerCase();
+  const selectedMonth = elements.monthFilter.value;
   const visible = expenses.filter((expense) => {
     const matchesCategory = selected === 'All' || selected === '' || expense.category === selected;
     const matchesTitle = expense.title.toLowerCase().includes(searchTitle);
-    return matchesCategory && matchesTitle;
+    // Comparing YYYY-MM keeps the same month in different years separate.
+    const matchesMonth = selectedMonth === '' || expense.date.slice(0, 7) === selectedMonth;
+    return matchesCategory && matchesTitle && matchesMonth;
   });
   renderTable(visible);
 }
@@ -212,6 +340,8 @@ async function refreshExpenses() {
   try {
     expenses = await getExpenses();
     renderSummary(expenses); // Summary always uses every server row.
+    renderCategoryChart(expenses);
+    renderMonthOptions(expenses);
     applyFilter();
     return true;
   } catch (error) {
@@ -354,7 +484,7 @@ async function handleDelete(expense, button) {
   button.disabled = true;
   try {
     await deleteExpense(expense.id);
-    if (await refreshExpenses()) showAlert('Expense deleted.', 'success');
+    if (await refreshExpenses()) showAlert(`${expense.title} deleted successfully.`, 'success');
   } catch (error) {
     showAlert(error.message);
   } finally {
@@ -418,6 +548,10 @@ elements.addForm.addEventListener('submit', handleAdd);
 elements.editForm.addEventListener('submit', handleEdit);
 elements.filter.addEventListener('change', applyFilter);
 elements.search.addEventListener('input', applyFilter);
+elements.monthFilter.addEventListener('change', () => {
+  renderMonthOptions(expenses);
+  applyFilter();
+});
 elements.editModal.addEventListener('show.bs.modal', () => { editModalShown = false; });
 elements.editModal.addEventListener('shown.bs.modal', () => { editModalShown = true; });
 elements.editModal.addEventListener('hidden.bs.modal', () => {
