@@ -18,7 +18,7 @@
     if (button) {
       button.setAttribute('aria-pressed', String(theme === 'dark'));
       button.classList.toggle('active', theme === 'dark');
-      button.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to Hulk mode';
+      button.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
     }
     document.dispatchEvent(new Event('themechange'));
   }
